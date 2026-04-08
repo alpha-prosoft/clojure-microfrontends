@@ -1,0 +1,18 @@
+{:source-paths ["src"]
+ :dependencies [[org.clojure/clojurescript "1.12.134"]
+                [reagent "2.0.1"]]
+ :builds
+ {:app2-esm
+  {:target :esm
+   :output-dir "js-out"
+   ;; :js-provider :import keeps JS deps as native ES import statements
+   ;; so Rspack's Module Federation shared mechanism can deduplicate them.
+   :js-options {:js-provider :import}
+   :modules
+   {:app2 {:init-fn app2.core/init
+           :exports {init app2.core/init
+                     mount app2.core/mount}}}
+   :compiler-options
+   {:optimizations :none
+    :pretty-print true
+    :source-map true}}}}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Main App (Host)</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #f5f5f5; }
+    .section { padding: 1rem 2rem; }
+    .remote-frame {
+      border: 2px dashed #bbb;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 2rem;
+      background: white;
+      min-height: 100px;
+    }
+    .remote-label {
+      font-size: 0.75rem;
+      color: #999;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main ClojureScript app mounts here -->
+  <div id="app"></div>
+
+  <div class="section">
+    <h2>Remote Micro-Frontends</h2>
+  </div>
+
+  <div class="remote-frame">
+    <div class="remote-label">app1 (Counter) — loaded via Module Federation</div>
+    <div id="app1-root"></div>
+  </div>
+
+  <div class="remote-frame">
+    <div class="remote-label">app2 (Todo List) — loaded via Module Federation</div>
+    <div id="app2-root"></div>
+  </div>
+
+  <script src="/remoteEntry.js"></script>
+  <script src="/bundle.js"></script>
+
+  <script type="module">
+    // After main's bundle runs (which calls init() and exposes window.cljsMain),
+    // dynamically load the remote apps via Module Federation.
+    async function loadRemotes() {
+      try {
+        // Load app1 remote entry
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'http://localhost:3002/remoteEntry.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+
+        // Load app2 remote entry
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'http://localhost:3003/remoteEntry.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+
+        // main's bundle runs with eager:true shared modules, which auto-populate
+        // __webpack_share_scopes__.default before any remote is loaded.
+        // Pass that scope directly to each remote's init() so they receive
+        // main's singleton instances (React, MUI, etc.) without us needing to
+        // call main.init() again (which would corrupt the already-populated scope).
+        const sharedScope = (typeof __webpack_share_scopes__ !== 'undefined' && __webpack_share_scopes__.default)
+          ? __webpack_share_scopes__.default
+          : {};
+
+        // Initialize app1 via its MF container, passing main's shared scope
+        const app1Container = window.app1;
+        await app1Container.init(sharedScope);
+        const app1Module = await app1Container.get('./app1');
+        const app1 = app1Module();
+        if (app1.mount) app1.mount('app1-root');
+
+        // Initialize app2 via its MF container, passing main's shared scope
+        const app2Container = window.app2;
+        await app2Container.init(sharedScope);
+        const app2Module = await app2Container.get('./app2');
+        const app2 = app2Module();
+        if (app2.mount) app2.mount('app2-root');
+
+      } catch (e) {
+        console.error('Failed to load remote apps:', e);
+        document.getElementById('app1-root').textContent = 'app1 unavailable (start with: npm run rspack:dev in app1/)';
+        document.getElementById('app2-root').textContent = 'app2 unavailable (start with: npm run rspack:dev in app2/)';
+      }
+    }
+
+    loadRemotes();
+  </script>
+</body>
+</html>

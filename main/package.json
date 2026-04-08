@@ -1,0 +1,26 @@
+{
+  "name": "mf-main",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "cljs:build": "npx shadow-cljs compile main-esm",
+    "cljs:watch": "npx shadow-cljs watch main-esm",
+    "rspack:build": "npx @rspack/cli build",
+    "rspack:dev": "npx @rspack/cli serve",
+    "build": "npm run cljs:build && npm run rspack:build",
+    "dev": "npm run cljs:watch & npm run rspack:dev"
+  },
+  "dependencies": {
+    "@mui/material": "^5.16.7",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@rspack/cli": "^1.7.11",
+    "@rspack/core": "^1.7.11",
+    "@module-federation/enhanced": "^2.3.1",
+    "shadow-cljs": "^3.3.8"
+  }
+}

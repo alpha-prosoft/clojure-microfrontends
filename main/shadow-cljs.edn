@@ -1,0 +1,32 @@
+{:source-paths ["src"]
+ :dependencies [[org.clojure/clojurescript "1.12.134"]
+                [reagent "2.0.1"]
+                [re-frame "1.4.3"]]
+ :builds
+ {:main-esm
+  {:target :esm
+   :output-dir "js-out"
+   ;; :js-provider :import produces real ES import statements for all
+   ;; JS dependencies — Rspack then handles bundling, tree-shaking,
+   ;; and Module Federation sharing of React/MUI.
+   :js-options {:js-provider :import}
+   :modules
+    {:main {:init-fn main.core/init
+            :exports {init          main.core/init
+                      renderApp     main.core/render-app
+                      getMuiButton  main.components/get-mui-button
+                      getMuiTypography main.components/get-mui-typography
+                      getMuiBox     main.components/get-mui-box
+                      getMuiPaper   main.components/get-mui-paper
+                      exposeGlobals main.core/expose-globals!
+                      ;; re-frame bridge — JS-callable wrappers
+                      rfDispatch            main.rf/js-dispatch
+                      rfDispatchSync        main.rf/js-dispatch-sync
+                      rfDispatchWithPayload main.rf/js-dispatch-with-payload
+                      rfSubscribe           main.rf/js-subscribe
+                      rfRegEventDb          main.rf/js-reg-event-db
+                      rfRegSub              main.rf/js-reg-sub}}}
+   :compiler-options
+   {:optimizations :none
+    :pretty-print true
+    :source-map true}}}}
